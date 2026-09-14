@@ -1,0 +1,101 @@
+version: '3.8'
+
+# ============================================================================
+# CampusFlow 3-Tier Application Orchestration (Root Workspace)
+# Services: PostgreSQL Database, Node.js/Express Backend, React Nginx Frontend
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # 1. Database Tier: Official PostgreSQL 16 Alpine
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: campusflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-campusflow}
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./campusflow/backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./campusflow/backend/database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-postgres} -d ${DATABASE_NAME:-campusflow}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - campusflow-net
+
+  # --------------------------------------------------------------------------
+  # 2. Application Backend Tier: Node.js 20 Express REST API
+  # --------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./campusflow/backend
+      dockerfile: Dockerfile
+    container_name: campusflow-backend
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-campusflow}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-campusflow_jwt_secret_key_2026_docker}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      CORS_ORIGIN: "*"
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - campusflow-net
+
+  # --------------------------------------------------------------------------
+  # 3. Web Frontend Tier: React SPA served via Nginx with API reverse proxy
+  # --------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./campusflow/frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: campusflow-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - campusflow-net
+
+# ----------------------------------------------------------------------------
+# Persistent Volumes
+# ----------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    name: campusflow_postgres_data
+
+# ----------------------------------------------------------------------------
+# Isolated Bridge Network
+# ----------------------------------------------------------------------------
+networks:
+  campusflow-net:
+    name: campusflow_network
+    driver: bridge
