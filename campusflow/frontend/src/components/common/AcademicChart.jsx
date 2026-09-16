@@ -11,9 +11,9 @@ const AcademicChart = () => {
   const paddingX = 50;
   const paddingY = 40;
 
-  // Range calculations for GPA scale 3.0 to 4.0
-  const minGpa = 3.0;
-  const maxGpa = 4.0;
+  // Range calculations for GPA scale 7.0 to 10.0
+  const minGpa = 7.0;
+  const maxGpa = 10.0;
 
   const getX = (index) => paddingX + (index * (width - 2 * paddingX)) / (gpaHistory.length - 1);
   const getY = (gpa) => height - paddingY - ((gpa - minGpa) / (maxGpa - minGpa)) * (height - 2 * paddingY);
@@ -32,8 +32,8 @@ const AcademicChart = () => {
   // Generate area under curve
   const areaD = `${pathD} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
 
-  // Dean's honors line at 3.75
-  const honorsY = getY(3.75);
+  // Dean's honors line at 9.0
+  const honorsY = getY(9.0);
 
   return (
     <div className="card" style={{ position: 'relative' }}>
@@ -41,7 +41,7 @@ const AcademicChart = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Academic Performance Trajectory</h3>
-            <span className="badge badge-primary">Current: 3.91 SGPA</span>
+            <span className="badge badge-primary">Current: 9.78 SGPA</span>
           </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
             Semester-by-semester Grade Point Average (GPA) progression across degree curriculum.
@@ -55,7 +55,7 @@ const AcademicChart = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <span style={{ width: 12, height: 2, borderTop: '2px dashed var(--warning)' }} />
-            <span style={{ color: 'var(--text-secondary)' }}>Honors (3.75)</span>
+            <span style={{ color: 'var(--text-secondary)' }}>Honors (9.0 / 10)</span>
           </div>
         </div>
       </div>
@@ -74,7 +74,7 @@ const AcademicChart = () => {
           </defs>
 
           {/* Grid lines */}
-          {[3.2, 3.4, 3.6, 3.8, 4.0].map((val) => {
+          {[7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0].map((val) => {
             const y = getY(val);
             return (
               <g key={val}>

@@ -115,7 +115,7 @@ const StudentAcademics = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
               <div style={{ textAlign: 'right' }}>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Semester SGPA</span>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>{sem.gpa} / 4.0</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>{sem.gpa} / 10</div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)', fontSize: '0.8rem', fontWeight: 600 }}>

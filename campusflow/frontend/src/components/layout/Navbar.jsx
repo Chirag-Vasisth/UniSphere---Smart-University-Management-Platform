@@ -149,28 +149,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
         </Link>
       </div>
 
-      {/* Center: Search & Live Backend Health Badge */}
+      {/* Center: Search */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        {/* Backend Status Indicator */}
-        <div 
-          title={apiOnline ? 'PostgreSQL backend is connected & healthy' : 'Backend is connecting...'}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.45rem',
-            padding: '0.3rem 0.75rem',
-            borderRadius: 'var(--radius-full)',
-            background: 'var(--bg-canvas)',
-            border: '1px solid var(--border-subtle)',
-            fontSize: '0.72rem',
-            fontWeight: 700
-          }}
-        >
-          <span className={`pulse-dot ${apiOnline ? 'online' : 'offline'}`} />
-          <span style={{ color: apiOnline ? 'var(--success)' : 'var(--danger)' }}>
-            {checkingApi ? 'Connecting...' : apiOnline ? 'Backend: Online' : 'Backend: Offline'}
-          </span>
-        </div>
 
         {/* Global Search Input */}
         <form onSubmit={handleSearchSubmit} className="desktop-search" style={{ display: 'none', position: 'relative' }}>

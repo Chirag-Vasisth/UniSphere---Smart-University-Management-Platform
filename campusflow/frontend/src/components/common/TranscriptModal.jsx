@@ -85,7 +85,7 @@ const TranscriptModal = ({ isOpen, onClose }) => {
           <div>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Calculated CGPA</span>
             <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--primary)' }}>
-              {stats.cgpa > 0 ? `${stats.cgpa} / 4.00` : '3.85 / 4.00'}
+              {stats.cgpa > 0 ? `${stats.cgpa} / 10` : '9.43 / 10'}
             </div>
           </div>
         </div>

@@ -195,7 +195,7 @@ const StudentDashboard = () => {
           title="Average Marks"
           value={marks.length > 0 ? `${dynamicStats.averageMarks} / 100` : '0 / 100'}
           subtitle={`Across ${marks.length} evaluated subjects`}
-          trend={marks.length > 0 ? `CGPA: ${dynamicStats.cgpa} / 4.0` : 'No marks yet'}
+          trend={marks.length > 0 ? `CGPA: ${dynamicStats.cgpa} / 10` : 'No marks yet'}
           trendPositive={dynamicStats.averageMarks >= 70}
           icon={Award}
           color="primary"

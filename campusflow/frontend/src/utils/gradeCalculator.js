@@ -18,21 +18,23 @@ export const getGradeInfo = (marksObtained, maximumMarks = 100) => {
   }
 
   const percentage = (marks / max) * 100;
+  // Standard 10-point academic grading scale
+  const gpa10 = parseFloat((percentage / 10).toFixed(2));
 
   if (percentage >= 90) {
-    return { grade: 'A+', badgeClass: 'badge-primary', gpa: 4.0, status: 'Distinction' };
+    return { grade: 'A+', badgeClass: 'badge-primary', gpa: gpa10, status: 'Distinction' };
   }
   if (percentage >= 80) {
-    return { grade: 'A', badgeClass: 'badge-success', gpa: 3.7, status: 'Excellent' };
+    return { grade: 'A', badgeClass: 'badge-success', gpa: gpa10, status: 'Excellent' };
   }
   if (percentage >= 70) {
-    return { grade: 'B', badgeClass: 'badge-info', gpa: 3.0, status: 'Good' };
+    return { grade: 'B', badgeClass: 'badge-info', gpa: gpa10, status: 'Good' };
   }
   if (percentage >= 60) {
-    return { grade: 'C', badgeClass: 'badge-warning', gpa: 2.0, status: 'Satisfactory' };
+    return { grade: 'C', badgeClass: 'badge-warning', gpa: gpa10, status: 'Satisfactory' };
   }
   if (percentage >= 50) {
-    return { grade: 'D', badgeClass: 'badge-warning', gpa: 1.0, status: 'Pass' };
+    return { grade: 'D', badgeClass: 'badge-warning', gpa: gpa10, status: 'Pass' };
   }
   return { grade: 'F', badgeClass: 'badge-danger', gpa: 0.0, status: 'Fail' };
 };

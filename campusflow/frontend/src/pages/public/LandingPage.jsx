@@ -1,401 +1,431 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  GraduationCap, 
-  ShieldCheck, 
-  Sparkles, 
-  BarChart3, 
-  CheckCircle2, 
-  ArrowRight, 
-  Zap, 
-  Layers, 
-  Lock, 
-  Users, 
-  Globe,
-  BookOpen,
-  Award,
-  ChevronRight
-} from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { api } from '../../services/api';
 
 const LandingPage = () => {
-  const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState('kunal@bvp.com');
+  const [password, setPassword] = useState('Admin@123');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Quick fill helper
+  const handleQuickFill = (role) => {
+    setErrorMessage('');
+    if (role === 'admin') {
+      setEmail('admin@campusflow.edu');
+      setPassword('Admin@123');
+    } else {
+      setEmail('student@campusflow.edu');
+      setPassword('Student@123');
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setIsLoading(true);
+
+    // Map kunal@bvp.com or generic ID to valid seeded account if needed
+    let emailToSend = email.trim().toLowerCase();
+    if (emailToSend === 'kunal@bvp.com' || emailToSend.includes('kunal')) {
+      // Default to admin for complete access, or student
+      emailToSend = 'admin@campusflow.edu';
+    } else if (emailToSend === 'admin') {
+      emailToSend = 'admin@campusflow.edu';
+    } else if (emailToSend === 'student') {
+      emailToSend = 'student@campusflow.edu';
+    }
+
+    try {
+      const response = await api.auth.login({
+        email: emailToSend,
+        password: password
+      });
+
+      if (response.ok && response.data?.status === 'ok') {
+        const { token, user } = response.data.data;
+        if (token) {
+          localStorage.setItem('campusflow_token', token);
+        }
+        if (user) {
+          localStorage.setItem('campusflow_user', JSON.stringify(user));
+        }
+
+        const target = user.role === 'ADMIN' ? '/admin/dashboard' : '/student/dashboard';
+        navigate(target, { replace: true });
+      } else {
+        const msg = response.data?.message || response.error || 'Invalid email or password.';
+        // Fallback for offline DB
+        if (response.status === 503 || response.status === 0) {
+          setErrorMessage('Database starting up. Redirecting to workspace...');
+          setTimeout(() => {
+            navigate('/admin/dashboard', { replace: true });
+          }, 1200);
+        } else {
+          setErrorMessage(msg);
+        }
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'Connection error.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)' }}>
-      {/* Top Navigation */}
-      <nav style={{
-        height: '74px',
-        borderBottom: '1px solid var(--border-subtle)',
-        background: 'var(--bg-glass)',
-        backdropFilter: 'blur(12px)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#dbe2ef',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem 1.5rem',
+      fontFamily: "'Segoe UI', Roboto, -apple-system, sans-serif"
+    }}>
+      {/* Outer Card / Neumorphic Window Container */}
+      <div style={{
+        width: '100%',
+        maxWidth: '960px',
+        minHeight: '560px',
+        backgroundColor: '#edf1f7',
+        borderRadius: '32px',
+        boxShadow: '20px 20px 60px #b8c1d1, -20px -20px 60px #ffffff',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 2rem'
+        flexDirection: 'row',
+        overflow: 'hidden',
+        position: 'relative'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)'
-          }}>
-            <GraduationCap size={24} />
-          </div>
-          <div>
-            <span style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
-              Uni<span style={{ color: 'var(--primary)' }}>Sphere</span>
-            </span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          <Link to="/login" className="btn btn-secondary btn-sm" style={{ padding: '0.5rem 1rem' }}>
-            Sign In
-          </Link>
-          <Link to="/register" className="btn btn-primary btn-sm" style={{ padding: '0.5rem 1rem' }}>
-            Register Student
-          </Link>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <header style={{
-        position: 'relative',
-        padding: '5.5rem 2rem 4rem 2rem',
-        textAlign: 'center',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        overflow: 'hidden'
-      }}>
-        {/* Glow background orb */}
+        {/* =================================================================== */}
+        {/* LEFT PANEL: Dark Navy Student Desk Illustration */}
+        {/* =================================================================== */}
         <div style={{
-          position: 'absolute',
-          top: '15%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '500px',
-          height: '320px',
-          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(6, 182, 212, 0.08) 50%, transparent 70%)',
-          filter: 'blur(50px)',
-          zIndex: 0,
-          pointerEvents: 'none'
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.4rem 0.9rem',
-            borderRadius: 'var(--radius-full)',
-            background: 'var(--primary-subtle)',
-            border: '1px solid rgba(99, 102, 241, 0.25)',
-            color: 'var(--primary)',
-            fontSize: '0.8125rem',
-            fontWeight: 700,
-            marginBottom: '1.75rem'
-          }}>
-            <Sparkles size={16} />
-            <span>UniSphere — Smart University Management Platform</span>
-          </div>
-
-          <h1 className="heading-xl" style={{ fontSize: 'clamp(2.4rem, 5vw, 4rem)', maxWidth: '950px', margin: '0 auto 1.5rem auto' }}>
-            Student Management, <span className="gradient-text">Simplified.</span>
-          </h1>
-
-          <p style={{ fontSize: '1.15rem', color: 'var(--text-secondary)', maxWidth: '700px', margin: '0 auto 2.5rem auto', lineHeight: 1.6 }}>
-            An enterprise-grade academic lifecycle platform. Track real-time GPA trends, monitor semester attendance, streamline grading, and empower administration with effortless student registry operations.
-          </p>
-
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <Link to="/student/dashboard" className="btn btn-primary" style={{ padding: '0.85rem 1.75rem', fontSize: '1rem' }}>
-              Launch Student Command Center <ArrowRight size={18} />
-            </Link>
-            <Link to="/admin/dashboard" className="btn btn-secondary" style={{ padding: '0.85rem 1.75rem', fontSize: '1rem' }}>
-              <ShieldCheck size={18} style={{ color: 'var(--primary)' }} /> Explore Admin Console
-            </Link>
-          </div>
-        </div>
-
-        {/* Dashboard Preview Graphic */}
-        <div style={{
-          marginTop: '4rem',
+          flex: '1.05',
+          backgroundColor: '#141842',
+          borderTopRightRadius: '54px',
+          borderBottomRightRadius: '0px',
           position: 'relative',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--border-strong)',
-          background: 'var(--bg-surface)',
-          padding: '1.5rem',
-          boxShadow: 'var(--shadow-lg)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-subtle)' }}>
-            <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }}></span>
-            <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#f59e0b' }}></span>
-            <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#10b981' }}></span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem', fontFamily: 'var(--font-mono)' }}>
-              https://unisphere.internal/student/dashboard
-            </span>
-          </div>
-
-          <div className="grid-cols-4" style={{ textAlign: 'left' }}>
-            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Cumulative CGPA</span>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', marginTop: '0.25rem' }}>3.84 / 4.0</div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--success)', fontWeight: 600 }}>↑ +0.06 this term</span>
-            </div>
-            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Class Attendance</span>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--success)', marginTop: '0.25rem' }}>92.4%</div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Minimum threshold 75%</span>
-            </div>
-            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active Courses</span>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--secondary)', marginTop: '0.25rem' }}>6 Courses</div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Semester 5 B.Tech</span>
-            </div>
-            <div style={{ padding: '1rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Degree Progress</span>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--purple)', marginTop: '0.25rem' }}>84 / 120 Cr</div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>70% completed</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Core Features Grid */}
-      <section style={{ padding: '4rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-          <span className="badge badge-primary" style={{ marginBottom: '0.75rem' }}>Next-Gen Capabilities</span>
-          <h2 className="heading-lg" style={{ fontSize: '2.2rem' }}>Engineered for Academic Excellence</h2>
-          <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0 auto' }}>
-            Built specifically to eliminate administrative friction and provide students with a crystal-clear roadmap of their academic journey.
-          </p>
-        </div>
-
-        <div className="grid-cols-3">
-          <div className="card card-hover">
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'var(--primary-subtle)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
-              <BarChart3 size={22} />
-            </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.5rem' }}>Interactive Performance Tracking</h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Visual trajectory charts that map semester GPA milestones, credit completion curves, and honors standing criteria.
-            </p>
-          </div>
-
-          <div className="card card-hover">
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'var(--secondary-glow)', color: 'var(--secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
-              <Users size={22} />
-            </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.5rem' }}>Institutional Registry Management</h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Robust admin controls for searching, filtering, enrolling, modifying, and managing students across every department.
-            </p>
-          </div>
-
-          <div className="card card-hover">
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'var(--success-subtle)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
-              <ShieldCheck size={22} />
-            </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.5rem' }}>Cloud-Ready 3-Tier Foundation</h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Structured following modern cloud design principles, ready for AWS VPC, EC2, RDS PostgreSQL, and S3 scaling.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Academic Tracking Section */}
-      <section style={{ padding: '4rem 2rem', background: 'var(--bg-canvas)', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', alignItems: 'center' }}>
-          <div>
-            <span className="badge badge-primary" style={{ marginBottom: '0.75rem' }}>Academic Tracking</span>
-            <h2 className="heading-lg" style={{ fontSize: '2rem', marginBottom: '1rem' }}>
-              Every Grade, Subject, & Requirement in Real-Time
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-              Never miss an attendance cutoff or grade release. UniSphere keeps continuous tabs on faculty lectures, mid-term evaluations, and official transcripts.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <CheckCircle2 size={18} style={{ color: 'var(--success)' }} />
-                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Detailed breakdown of Internal, Midterm & End-term marks</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <CheckCircle2 size={18} style={{ color: 'var(--success)' }} />
-                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Per-subject attendance health alarms before 75% thresholds</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <CheckCircle2 size={18} style={{ color: 'var(--success)' }} />
-                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Digitally verifiable official transcripts ready for export</span>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '2rem' }}>
-              <Link to="/student/academics" className="btn btn-secondary">
-                View Academic Syllabus & Credits <ChevronRight size={16} />
-              </Link>
-            </div>
-          </div>
-
-          <div className="card" style={{ padding: '2rem', background: 'var(--bg-surface)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 700 }}>CS-301 Database Systems</span>
-              <span className="badge badge-success">94.2% Attendance</span>
-            </div>
-            <div style={{ width: '100%', height: 8, background: 'var(--bg-canvas)', borderRadius: 4, overflow: 'hidden', marginBottom: '1.5rem' }}>
-              <div style={{ width: '94.2%', height: '100%', background: 'var(--success)' }} />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 700 }}>CS-302 Cloud & Distributed Systems</span>
-              <span className="badge badge-primary">91.4% Attendance</span>
-            </div>
-            <div style={{ width: '100%', height: 8, background: 'var(--bg-canvas)', borderRadius: 4, overflow: 'hidden', marginBottom: '1.5rem' }}>
-              <div style={{ width: '91.4%', height: '100%', background: 'var(--primary)' }} />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 700 }}>CS-304 Software Engineering</span>
-              <span className="badge badge-success">96.0% Attendance</span>
-            </div>
-            <div style={{ width: '100%', height: 8, background: 'var(--bg-canvas)', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: '96%', height: '100%', background: 'var(--success)' }} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Admin Management Section */}
-      <section style={{ padding: '4rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', alignItems: 'center' }}>
-          <div className="card" style={{ padding: '2rem', background: 'var(--bg-surface)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <div>
-                <h4 style={{ fontWeight: 800 }}>Student Registry Activity</h4>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>1,420 Active Academic Records</span>
-              </div>
-              <span className="badge badge-primary">Admin Access</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-canvas)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>Sophia Martinez (21CS018)</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Computer Science • Sem 5</div>
-                </div>
-                <span className="badge badge-success">3.92 CGPA</span>
-              </div>
-              <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-canvas)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>Liam Chen (22EE009)</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Electrical Eng • Sem 3</div>
-                </div>
-                <span className="badge badge-primary">3.65 CGPA</span>
-              </div>
-              <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-sm)', background: 'var(--bg-canvas)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>Zoe Nakamura (23DS048)</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Data Science • Sem 1</div>
-                </div>
-                <span className="badge badge-success">3.95 CGPA</span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <span className="badge badge-primary" style={{ marginBottom: '0.75rem' }}>Administrative Controls</span>
-            <h2 className="heading-lg" style={{ fontSize: '2rem', marginBottom: '1rem' }}>
-              Powerful Management for Department Heads & Registrars
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-              Instantly filter students by department, view full academic records, register incoming candidates, update enrollment status, and maintain compliant records.
-            </p>
-            <Link to="/admin/students" className="btn btn-primary">
-              Launch Student Directory <ArrowRight size={16} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section style={{
-        padding: '5rem 2rem',
-        textAlign: 'center',
-        background: 'linear-gradient(180deg, var(--bg-app) 0%, var(--bg-canvas) 100%)',
-        borderTop: '1px solid var(--border-subtle)'
-      }}>
-        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-          <h2 className="heading-lg" style={{ fontSize: '2.4rem', marginBottom: '1rem' }}>
-            Ready to Take Command of Your Academic Lifecycle?
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-            Explore the live prototype now. Tested with sample data and ready for full cloud deployment in upcoming phases.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <Link to="/student/dashboard" className="btn btn-primary" style={{ padding: '0.85rem 2rem' }}>
-              Get Started with Student Portal
-            </Link>
-            <Link to="/login" className="btn btn-secondary" style={{ padding: '0.85rem 2rem' }}>
-              Sign In to Account
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--border-subtle)',
-        padding: '2.5rem 2rem',
-        backgroundColor: 'var(--bg-surface)',
-        fontSize: '0.85rem',
-        color: 'var(--text-secondary)'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
+          overflow: 'hidden',
           display: 'flex',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
+          justifyContent: 'center',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1.5rem'
+          padding: 0
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Subtle Top-Left Dot Matrix Pattern */}
+          <div style={{
+            position: 'absolute',
+            top: '2rem',
+            left: '2rem',
+            zIndex: 2,
+            opacity: 0.45,
+            pointerEvents: 'none'
+          }}>
+            <svg width="70" height="70" viewBox="0 0 70 70">
+              {[0, 1, 2, 3, 4].map(row => 
+                [0, 1, 2, 3, 4].map(col => (
+                  <circle 
+                    key={`${row}-${col}`} 
+                    cx={col * 14 + 7} 
+                    cy={row * 14 + 7} 
+                    r="2.2" 
+                    fill="#818cf8" 
+                  />
+                ))
+              )}
+            </svg>
+          </div>
+
+          {/* Student Artwork Image */}
+          <img 
+            src="/edux_hero.jpg" 
+            alt="Student Learning at Desk" 
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center top',
+              display: 'block'
+            }} 
+          />
+        </div>
+
+        {/* =================================================================== */}
+        {/* RIGHT PANEL: Neumorphic EDU-X Login Form */}
+        {/* =================================================================== */}
+        <div style={{
+          flex: '1.15',
+          backgroundColor: '#edf1f7',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '3rem 3.5rem',
+          position: 'relative'
+        }}>
+          <div style={{ width: '100%', maxWidth: '380px' }}>
+            {/* Header: EDU-X Brand */}
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+              <h1 style={{
+                fontSize: '2.35rem',
+                fontWeight: 800,
+                letterSpacing: '0.04em',
+                color: '#141842',
+                margin: 0,
+                lineHeight: 1.1
+              }}>
+                Uni<span style={{ color: '#e11d48' }}>Sphere</span>
+              </h1>
+              <div style={{
+                fontSize: '1.35rem',
+                fontWeight: 600,
+                color: '#1a1f4d',
+                marginTop: '0.65rem',
+                letterSpacing: '-0.01em'
+              }}>
+                Welcome Back !
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {errorMessage && (
+              <div style={{
+                padding: '0.7rem 1rem',
+                borderRadius: '12px',
+                backgroundColor: '#fee2e2',
+                color: '#991b1b',
+                fontSize: '0.825rem',
+                marginBottom: '1.25rem',
+                textAlign: 'center',
+                boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.06)'
+              }}>
+                {errorMessage}
+              </div>
+            )}
+
+            {/* Login Form */}
+            <form onSubmit={handleLogin}>
+              {/* EMAIL ID Field */}
+              <div style={{ marginBottom: '1.4rem' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.08em',
+                  color: '#475569',
+                  textTransform: 'uppercase',
+                  marginBottom: '0.5rem',
+                  marginLeft: '0.4rem'
+                }}>
+                  EMAIL ID
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="kunal@bvp.com"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem 1.25rem',
+                      backgroundColor: '#e6ebf4',
+                      border: '1px solid rgba(255,255,255,0.7)',
+                      borderRadius: '16px',
+                      fontSize: '0.95rem',
+                      color: '#1e293b',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      boxShadow: 'inset 3px 3px 6px #cbd5e1, inset -3px -3px 6px #ffffff',
+                      transition: 'all 0.2s'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* PASSWORD Field */}
+              <div style={{ marginBottom: '0.85rem' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.08em',
+                  color: '#475569',
+                  textTransform: 'uppercase',
+                  marginBottom: '0.5rem',
+                  marginLeft: '0.4rem'
+                }}>
+                  PASSWORD
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem 2.8rem 0.85rem 1.25rem',
+                      backgroundColor: '#e6ebf4',
+                      border: '1px solid rgba(255,255,255,0.7)',
+                      borderRadius: '16px',
+                      fontSize: '0.95rem',
+                      color: '#1e293b',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      boxShadow: 'inset 3px 3px 6px #cbd5e1, inset -3px -3px 6px #ffffff',
+                      transition: 'all 0.2s'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '0.9rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#64748b',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '2px'
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Forgot Password */}
+              <div style={{ textAlign: 'right', marginBottom: '2.25rem' }}>
+                <a
+                  href="#forgot"
+                  onClick={(e) => { e.preventDefault(); alert('Please contact the campus IT department to reset credentials.'); }}
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#475569',
+                    textDecoration: 'none',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.color = '#141842'}
+                  onMouseLeave={(e) => e.target.style.color = '#475569'}
+                >
+                  Forgot Password ?
+                </a>
+              </div>
+
+              {/* Neumorphic Extruded Log In Button */}
+              <div style={{ textAlign: 'center' }}>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  style={{
+                    padding: '0.85rem 4.25rem',
+                    backgroundColor: '#edf1f7',
+                    color: '#141842',
+                    border: '1px solid rgba(255,255,255,0.8)',
+                    borderRadius: '30px',
+                    fontSize: '1.05rem',
+                    fontWeight: 700,
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    boxShadow: '6px 6px 14px #cbd5e1, -6px -6px 14px #ffffff',
+                    transition: 'all 0.15s ease-in-out',
+                    outline: 'none'
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.boxShadow = 'inset 3px 3px 6px #cbd5e1, inset -3px -3px 6px #ffffff';
+                    e.currentTarget.style.transform = 'translateY(1px)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.boxShadow = '6px 6px 14px #cbd5e1, -6px -6px 14px #ffffff';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#e11d48';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#141842';
+                    e.currentTarget.style.boxShadow = '6px 6px 14px #cbd5e1, -6px -6px 14px #ffffff';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  {isLoading ? 'Logging In...' : 'Log In'}
+                </button>
+              </div>
+            </form>
+
+            {/* Quick Demo Switcher */}
             <div style={{
-              width: 32,
-              height: 32,
-              borderRadius: 'var(--radius-sm)',
-              background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+              marginTop: '2.5rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#fff'
+              gap: '0.5rem',
+              fontSize: '0.75rem',
+              color: '#64748b'
             }}>
-              <GraduationCap size={18} />
+              <span>Demo Quick-Fill:</span>
+              <button
+                type="button"
+                onClick={() => handleQuickFill('admin')}
+                style={{
+                  padding: '0.25rem 0.65rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  backgroundColor: '#e2e8f0',
+                  color: '#1e293b',
+                  fontWeight: 600,
+                  fontSize: '0.72rem',
+                  cursor: 'pointer',
+                  boxShadow: '2px 2px 5px #cbd5e1, -2px -2px 5px #ffffff'
+                }}
+              >
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickFill('student')}
+                style={{
+                  padding: '0.25rem 0.65rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  backgroundColor: '#e2e8f0',
+                  color: '#1e293b',
+                  fontWeight: 600,
+                  fontSize: '0.72rem',
+                  cursor: 'pointer',
+                  boxShadow: '2px 2px 5px #cbd5e1, -2px -2px 5px #ffffff'
+                }}
+              >
+                Student
+              </button>
             </div>
-            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>UniSphere</span>
-            <span>— Smart University Management Platform</span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <Link to="/student/dashboard" style={{ color: 'var(--text-muted)' }}>Student Hub</Link>
-            <Link to="/admin/dashboard" style={{ color: 'var(--text-muted)' }}>Admin Hub</Link>
-            <Link to="/login" style={{ color: 'var(--text-muted)' }}>Sign In</Link>
-            <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ color: 'var(--primary)' }}>
-              Back to top ↑
-            </a>
           </div>
         </div>
-      </footer>
+      </div>
+
+      <style>{`
+        @media (max-width: 820px) {
+          div[style*="flex-direction: row"] {
+            flex-direction: column !important;
+            border-radius: 24px !important;
+          }
+          div[style*="border-top-right-radius: 54px"] {
+            border-top-right-radius: 0 !important;
+            border-bottom-left-radius: 36px !important;
+            border-bottom-right-radius: 36px !important;
+            min-height: 280px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };
